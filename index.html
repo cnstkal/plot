@@ -26,7 +26,7 @@
   }
   .wrap { max-width:520px; margin:0 auto; }
 
-  .header { margin-bottom:32px; display:flex; align-items:center; gap:10px; }
+  .header { margin-bottom:28px; display:flex; align-items:center; gap:10px; }
   .header .emoji {
     width:40px; height:40px; border-radius:12px;
     background:linear-gradient(135deg,#ffb199,#c2a4ff);
@@ -38,7 +38,7 @@
   .header .sub { font-size:12px; color:#9a9184; font-weight:500; margin-top:1px; }
 
   .oneclick {
-    width:100%; padding:18px; margin-bottom:36px;
+    width:100%; padding:18px; margin-bottom:30px;
     border:none; border-radius:18px; cursor:pointer;
     background:linear-gradient(135deg,#2a2622,#4a433c);
     color:#fff; font-size:16px; font-weight:700; letter-spacing:-0.01em;
@@ -47,6 +47,15 @@
     display:flex; align-items:center; justify-content:center; gap:8px;
   }
   .oneclick:active { transform:scale(0.97); box-shadow:0 4px 12px rgba(42,38,34,0.22); }
+
+  .section-label {
+    font-size:12px; font-weight:700; color:#b0a898;
+    letter-spacing:0.02em; margin:6px 2px 12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after {
+    content:''; flex:1; height:1px; background:#e8e2d8;
+  }
 
   .card {
     background:#fff;
@@ -59,9 +68,11 @@
   .card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
   .card-head h2 { font-size:14px; font-weight:700; color:#4a433c; display:flex; align-items:center; gap:6px; }
   .card-head h2 .dot { width:6px; height:6px; border-radius:50%; }
+  .card-head .btns { display:flex; gap:6px; }
 
   .genre .dot { background:#ff9d7a; }
-  .pos .dot { background:#7aa8ff; }
+  .character .dot { background:#7aa8ff; }
+  .setting .dot { background:#6bc7a8; }
   .fantasy .dot { background:#b98aff; }
   .nsfw .dot { background:#ff6f91; }
 
@@ -71,6 +82,14 @@
     transition:background .12s ease, transform .12s ease;
   }
   .rollbtn:active { transform:scale(0.95); background:#e9e5dd; }
+
+  .listbtn {
+    padding:9px 12px; border-radius:100px; border:none; cursor:pointer;
+    background:transparent; color:#b0a898; font-size:13px; font-weight:600;
+    transition:background .12s ease, color .12s ease;
+  }
+  .listbtn:active { background:#f3f0eb; }
+  .listbtn.active { background:#f3f0eb; color:#4a433c; }
 
   .result {
     min-height:56px;
@@ -87,6 +106,24 @@
   }
   .result .main .x { color:#c7bfb2; font-weight:500; margin:0 4px; }
   .empty { color:#c2b9ac; font-size:13px; font-weight:500; }
+
+  .chiplist {
+    display:none;
+    flex-wrap:wrap; gap:6px;
+    margin-top:12px;
+    padding-top:14px;
+    border-top:1px dashed #ece7de;
+  }
+  .chiplist.open { display:flex; }
+  .chip {
+    font-size:12px; font-weight:500; color:#6b6255;
+    background:#f5f2ec; border-radius:8px;
+    padding:6px 10px;
+  }
+  .count {
+    font-size:11px; color:#c2b9ac; font-weight:600;
+    margin-top:2px;
+  }
 
   @keyframes pop {
     from { opacity:0; transform:translateY(4px) scale(0.98); }
@@ -105,50 +142,91 @@
     </div>
   </div>
 
-  <button class="oneclick" onclick="rollGenre();rollPos();">🎲 원클릭 뽑기</button>
+  <button class="oneclick" onclick="rollGenre();rollCharacter();rollSetting();">🎲 원클릭 뽑기</button>
+
+  <div class="section-label">기본 요소</div>
 
   <div class="card genre">
     <div class="card-head">
       <h2><span class="dot"></span>장르</h2>
-      <button class="rollbtn" onclick="rollGenre()">뽑기</button>
+      <div class="btns">
+        <button class="listbtn" id="genreListBtn" onclick="toggleList('genre')">목록</button>
+        <button class="rollbtn" onclick="rollGenre()">뽑기</button>
+      </div>
     </div>
     <div class="result" id="genreResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="genreList"></div>
   </div>
 
-  <div class="card pos">
+  <div class="card character">
     <div class="card-head">
-      <h2><span class="dot"></span>공수</h2>
-      <button class="rollbtn" onclick="rollPos()">뽑기</button>
+      <h2><span class="dot"></span>캐릭터</h2>
+      <div class="btns">
+        <button class="listbtn" id="characterListBtn" onclick="toggleList('character')">목록</button>
+        <button class="rollbtn" onclick="rollCharacter()">뽑기</button>
+      </div>
     </div>
-    <div class="result" id="posResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="result" id="characterResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="characterList"></div>
   </div>
+
+  <div class="card setting">
+    <div class="card-head">
+      <h2><span class="dot"></span>배경</h2>
+      <div class="btns">
+        <button class="listbtn" id="settingListBtn" onclick="toggleList('setting')">목록</button>
+        <button class="rollbtn" onclick="rollSetting()">뽑기</button>
+      </div>
+    </div>
+    <div class="result" id="settingResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="settingList"></div>
+  </div>
+
+  <div class="section-label">플러스 요소</div>
 
   <div class="card fantasy">
     <div class="card-head">
       <h2><span class="dot"></span>판타지</h2>
-      <button class="rollbtn" onclick="rollFantasy()">뽑기</button>
+      <div class="btns">
+        <button class="listbtn" id="fantasyListBtn" onclick="toggleList('fantasy')">목록</button>
+        <button class="rollbtn" onclick="rollFantasy()">뽑기</button>
+      </div>
     </div>
     <div class="result" id="fantasyResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="fantasyList"></div>
   </div>
 
   <div class="card nsfw">
     <div class="card-head">
       <h2><span class="dot"></span>수위 키워드</h2>
-      <button class="rollbtn" onclick="rollNsfw()">뽑기</button>
+      <div class="btns">
+        <button class="listbtn" id="nsfwListBtn" onclick="toggleList('nsfw')">목록</button>
+        <button class="rollbtn" onclick="rollNsfw()">뽑기</button>
+      </div>
     </div>
     <div class="result" id="nsfwResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="nsfwList"></div>
   </div>
 
 </div>
 
 <script>
-const genres = ["로맨스","현대","오피스","학원","무협","회귀","빙의","환생","오메가버스","군대","재벌","스포츠","의학","범죄","느와르","호러","좀비아포칼립스","포스트아포칼립스","초능력","히어로","SF","타임루프","계약연애","정략결혼","가족","육아","일상","힐링","복수극","스릴러","밀실","재난","전쟁","스팀펑크","아카데미","연예계","사이버펑크","이혼","재혼","캠퍼스","네임버스","AI","키잡/역키잡","게임","센티넬버스","마법소녀","밴드","섹피","신화","사이비","구룡성채","해외","학교폭력","인신매매","정신병원","입헌군주제","교도소","어플만남","근친","노란장판"];
+// 장르 - 작품 전체를 아우르는 분위기/톤
+const genres = ["로맨스","현대","무협","회귀","빙의","환생","오메가버스","스포츠","의학","범죄","느와르","호러","좀비아포칼립스","포스트아포칼립스","초능력","히어로","SF","타임루프","계약연애","정략결혼","가족","육아","일상","힐링","복수극","스릴러","밀실","재난","전쟁","스팀펑크","사이버펑크","이혼","재혼","네임버스","AI","키잡/역키잡","게임","센티넬버스","마법소녀","밴드","섹피","신화","사이비","해외","어플만남","근친","노란장판"];
 
+// 배경 - 이야기의 중심지가 되는 물리적/제도적 공간
+const settings = ["오피스","학원","캠퍼스","아카데미","연예계","군대","재벌","구룡성채","인신매매","정신병원","입헌군주제","교도소","학교폭력"];
+
+// 캐릭터 (기존 공수)
+const character = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","난민","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","디자이너","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델"];
+
+// 판타지 - 플러스 요소
+const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","신하","기사단장","기사","마법사","대마법사","성직자","사제","신관","예언자","용병","도적","상인","약초꾼","평민","마왕","마족","드래곤","뱀파이어","늑대인간","신","신의 사도","몰락한 왕족","악마","천사","반신","용사","성녀","불멸자","이세계인","다른 종족의 왕","신의 대리인","왕의 최측근","해적"];
+
+// 수위 키워드 - 플러스 요소
 const nsfwKeywords = ["콘돔","순애","수면간","자위","임신","방치","관음","롤플레이","딥쓰롯","야외","근친","촉수","정신 개조","육변기","세뇌","가정폭력","딜도","펠라","난교","윤간","시오후키","감금","3P","NTR","납치","산란","주종관계","촬영","착유","스마타","파이즈리","문신","원홀투스틱","벽고","오나홀","코스튬","매춘","구속","하렘","결혼","스토킹","처녀상실","유부","후타나리","치한"];
 
-const pos = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","난민","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","디자이너","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델"];
-
-const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","신하","기사단장","기사","마법사","대마법사","성직자","사제","신관","예언자","용병","도적","상인","약초꾼","평민","마왕","마족","드래곤","뱀파이어","늑대인간","신","신의 사도","몰락한 왕족","악마","천사","반신","용사","성녀","불멸자","이세계인","다른 종족의 왕","신의 대리인","왕의 최측근","해적"];
+const data = { genre: genres, character: character, setting: settings, fantasy: fantasy, nsfw: nsfwKeywords };
 
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function pickTwo(arr){
@@ -157,25 +235,46 @@ function pickTwo(arr){
   if(j>=i) j++;
   return [arr[i], arr[j]];
 }
-
-function rollGenre(){
-  document.getElementById('genreResult').innerHTML = `<div class="main">${pick(genres)}</div>`;
-}
-function rollPos(){
-  const [a,b] = pickTwo(pos);
-  document.getElementById('posResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
-}
-function rollFantasy(){
-  const [a,b] = pickTwo(fantasy);
-  document.getElementById('fantasyResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
-}
 function pickN(arr,n){
   const copy=[...arr], out=[];
   for(let k=0;k<n;k++){ out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]); }
   return out;
 }
+
+function rollGenre(){
+  document.getElementById('genreResult').innerHTML = `<div class="main">${pick(genres)}</div>`;
+}
+function rollCharacter(){
+  const [a,b] = pickTwo(character);
+  document.getElementById('characterResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
+}
+function rollSetting(){
+  document.getElementById('settingResult').innerHTML = `<div class="main">${pick(settings)}</div>`;
+}
+function rollFantasy(){
+  const [a,b] = pickTwo(fantasy);
+  document.getElementById('fantasyResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
+}
 function rollNsfw(){
   document.getElementById('nsfwResult').innerHTML = `<div class="main">${pickN(nsfwKeywords,3).join(' · ')}</div>`;
+}
+
+function toggleList(key){
+  const el = document.getElementById(key+'List');
+  const btn = document.getElementById(key+'ListBtn');
+  const isOpen = el.classList.contains('open');
+  if(isOpen){
+    el.classList.remove('open');
+    btn.classList.remove('active');
+    return;
+  }
+  if(el.children.length === 0){
+    const arr = data[key];
+    el.innerHTML = arr.map(item => `<span class="chip">${item}</span>`).join('') +
+      `<div class="count" style="width:100%">총 ${arr.length}개</div>`;
+  }
+  el.classList.add('open');
+  btn.classList.add('active');
 }
 </script>
 </body>
