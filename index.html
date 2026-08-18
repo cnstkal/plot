@@ -9,56 +9,140 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Plot">
-<meta name="theme-color" content="#f7f6f4">
+<meta name="theme-color" content="#faf8f5">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <style>
-  * { box-sizing:border-box; margin:0; padding:0; touch-action:manipulation; }
-  body { font-family:'Pretendard',sans-serif; background:#f7f6f4; color:#2c2c2c; min-height:100vh; padding:24px 16px; }
+  * { box-sizing:border-box; margin:0; padding:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  html { background:#faf8f5; }
+  body {
+    font-family:'Pretendard',sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,214,196,0.35), transparent 45%),
+      radial-gradient(circle at 100% 20%, rgba(196,214,255,0.3), transparent 40%),
+      #faf8f5;
+    color:#2a2622;
+    min-height:100vh;
+    padding:36px 18px 60px;
+  }
   .wrap { max-width:520px; margin:0 auto; }
-  h1 { font-size:20px; font-weight:700; margin-bottom:24px; }
-  .card { margin-bottom:32px; }
-  .card h2 { font-size:14px; font-weight:600; color:#888; margin-bottom:8px; }
-  .rollbtn { width:100%; padding:16px; border-radius:14px; background:#2c2c2c; color:#fff; font-size:16px; font-weight:600; border:none; cursor:pointer; }
-  .rollbtn:active { transform:scale(0.98); }
-  .result { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.05); min-height:80px; display:flex; flex-direction:column; justify-content:center; margin-top:10px; }
-  .result .main { font-size:20px; font-weight:700; }
-  .empty { color:#bbb; font-size:13px; }
+
+  .header { margin-bottom:32px; display:flex; align-items:center; gap:10px; }
+  .header .emoji {
+    width:40px; height:40px; border-radius:12px;
+    background:linear-gradient(135deg,#ffb199,#c2a4ff);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+    box-shadow:0 6px 14px rgba(194,164,255,0.35);
+  }
+  h1 { font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+  .header .sub { font-size:12px; color:#9a9184; font-weight:500; margin-top:1px; }
+
+  .oneclick {
+    width:100%; padding:18px; margin-bottom:36px;
+    border:none; border-radius:18px; cursor:pointer;
+    background:linear-gradient(135deg,#2a2622,#4a433c);
+    color:#fff; font-size:16px; font-weight:700; letter-spacing:-0.01em;
+    box-shadow:0 10px 24px rgba(42,38,34,0.22);
+    transition:transform .12s ease, box-shadow .12s ease;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .oneclick:active { transform:scale(0.97); box-shadow:0 4px 12px rgba(42,38,34,0.22); }
+
+  .card {
+    background:#fff;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 2px 10px rgba(60,50,40,0.05);
+    border:1px solid rgba(0,0,0,0.03);
+  }
+  .card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-head h2 { font-size:14px; font-weight:700; color:#4a433c; display:flex; align-items:center; gap:6px; }
+  .card-head h2 .dot { width:6px; height:6px; border-radius:50%; }
+
+  .genre .dot { background:#ff9d7a; }
+  .pos .dot { background:#7aa8ff; }
+  .fantasy .dot { background:#b98aff; }
+  .nsfw .dot { background:#ff6f91; }
+
+  .rollbtn {
+    padding:9px 16px; border-radius:100px; border:none; cursor:pointer;
+    background:#f3f0eb; color:#4a433c; font-size:13px; font-weight:600;
+    transition:background .12s ease, transform .12s ease;
+  }
+  .rollbtn:active { transform:scale(0.95); background:#e9e5dd; }
+
+  .result {
+    min-height:56px;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    border-radius:14px;
+    background:#faf8f5;
+    padding:14px 12px;
+  }
+  .result .main {
+    font-size:17px; font-weight:700; color:#2a2622;
+    line-height:1.5;
+    animation:pop .28s ease;
+  }
+  .result .main .x { color:#c7bfb2; font-weight:500; margin:0 4px; }
+  .empty { color:#c2b9ac; font-size:13px; font-weight:500; }
+
+  @keyframes pop {
+    from { opacity:0; transform:translateY(4px) scale(0.98); }
+    to { opacity:1; transform:translateY(0) scale(1); }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>✍️ Plot</h1>
 
-  <button class="rollbtn" onclick="rollGenre();rollPos();" style="margin-bottom:32px;">🎲 원클릭</button>
+  <div class="header">
+    <div class="emoji">✍️</div>
+    <div>
+      <h1>Plot</h1>
+      <div class="sub">랜덤 플롯 생성기</div>
+    </div>
+  </div>
 
-  <div class="card">
-    <h2>장르</h2>
-    <button class="rollbtn" onclick="rollGenre()">🎲 장르 뽑기</button>
+  <button class="oneclick" onclick="rollGenre();rollPos();">🎲 원클릭 뽑기</button>
+
+  <div class="card genre">
+    <div class="card-head">
+      <h2><span class="dot"></span>장르</h2>
+      <button class="rollbtn" onclick="rollGenre()">뽑기</button>
+    </div>
     <div class="result" id="genreResult"><div class="empty">눌러서 뽑기</div></div>
   </div>
 
-  <div class="card">
-    <h2>공수</h2>
-    <button class="rollbtn" onclick="rollPos()">🎲 공수 뽑기</button>
+  <div class="card pos">
+    <div class="card-head">
+      <h2><span class="dot"></span>공수</h2>
+      <button class="rollbtn" onclick="rollPos()">뽑기</button>
+    </div>
     <div class="result" id="posResult"><div class="empty">눌러서 뽑기</div></div>
   </div>
 
-  <div class="card">
-    <h2>판타지</h2>
-    <button class="rollbtn" onclick="rollFantasy()">🎲 판타지 뽑기</button>
+  <div class="card fantasy">
+    <div class="card-head">
+      <h2><span class="dot"></span>판타지</h2>
+      <button class="rollbtn" onclick="rollFantasy()">뽑기</button>
+    </div>
     <div class="result" id="fantasyResult"><div class="empty">눌러서 뽑기</div></div>
   </div>
 
-  <div class="card">
-    <h2>수위 키워드</h2>
-    <button class="rollbtn" onclick="rollNsfw()">🎲 수위 키워드 뽑기</button>
+  <div class="card nsfw">
+    <div class="card-head">
+      <h2><span class="dot"></span>수위 키워드</h2>
+      <button class="rollbtn" onclick="rollNsfw()">뽑기</button>
+    </div>
     <div class="result" id="nsfwResult"><div class="empty">눌러서 뽑기</div></div>
   </div>
+
 </div>
 
 <script>
 const genres = ["로맨스","현대","오피스","학원","무협","회귀","빙의","환생","오메가버스","군대","재벌","스포츠","의학","범죄","느와르","호러","좀비아포칼립스","포스트아포칼립스","초능력","히어로","SF","타임루프","계약연애","정략결혼","가족","육아","일상","힐링","복수극","스릴러","밀실","재난","전쟁","스팀펑크","아카데미","연예계","사이버펑크","이혼","재혼","캠퍼스","네임버스","AI","키잡/역키잡","게임","센티넬버스","마법소녀","밴드","섹피","신화","사이비","구룡성채","해외","학교폭력","인신매매","정신병원","입헌군주제","교도소","어플만남","근친","노란장판"];
-
 
 const nsfwKeywords = ["콘돔","순애","수면간","자위","임신","방치","관음","롤플레이","딥쓰롯","야외","근친","촉수","정신 개조","육변기","세뇌","가정폭력","딜도","펠라","난교","윤간","시오후키","감금","3P","NTR","납치","산란","주종관계","촬영","착유","스마타","파이즈리","문신","원홀투스틱","벽고","오나홀","코스튬","매춘","구속","하렘","결혼","스토킹","처녀상실","유부","후타나리","치한"];
 
@@ -79,11 +163,11 @@ function rollGenre(){
 }
 function rollPos(){
   const [a,b] = pickTwo(pos);
-  document.getElementById('posResult').innerHTML = `<div class="main">${a} × ${b}</div>`;
+  document.getElementById('posResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
 }
 function rollFantasy(){
   const [a,b] = pickTwo(fantasy);
-  document.getElementById('fantasyResult').innerHTML = `<div class="main">${a} × ${b}</div>`;
+  document.getElementById('fantasyResult').innerHTML = `<div class="main">${a}<span class="x">×</span>${b}</div>`;
 }
 function pickN(arr,n){
   const copy=[...arr], out=[];
