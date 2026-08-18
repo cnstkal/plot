@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Plot</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -12,93 +12,68 @@
 <meta name="theme-color" content="#f7f6f4">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <style>
-  * { box-sizing: border-box; margin:0; padding:0; }
-  body { font-family: 'Pretendard', sans-serif; background:#f7f6f4; color:#2c2c2c; min-height:100vh; padding:24px 16px; }
+  * { box-sizing:border-box; margin:0; padding:0; touch-action:manipulation; }
+  body { font-family:'Pretendard',sans-serif; background:#f7f6f4; color:#2c2c2c; min-height:100vh; padding:24px 16px; }
   .wrap { max-width:520px; margin:0 auto; }
-  h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
-  .sub { font-size:13px; color:#888; margin-bottom:24px; }
-  .card { background:#fff; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
-  .card h2 { font-size:14px; font-weight:600; margin-bottom:12px; color:#555; }
-  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
-  .tag { padding:7px 12px; border-radius:20px; background:#f0efec; font-size:13px; cursor:pointer; user-select:none; border:1px solid transparent; }
-  .tag.active { background:#2c2c2c; color:#fff; }
-  .addrow { display:flex; gap:6px; }
-  input[type=text] { flex:1; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-family:inherit; font-size:13px; }
-  button { font-family:inherit; cursor:pointer; border:none; }
-  .addbtn { padding:8px 12px; border-radius:8px; background:#eee; font-size:13px; }
-  .rollbtn { width:100%; padding:16px; border-radius:14px; background:#2c2c2c; color:#fff; font-size:16px; font-weight:600; margin:8px 0 20px; }
+  h1 { font-size:20px; font-weight:700; margin-bottom:24px; }
+  .card { margin-bottom:32px; }
+  .card h2 { font-size:14px; font-weight:600; color:#888; margin-bottom:8px; }
+  .rollbtn { width:100%; padding:16px; border-radius:14px; background:#2c2c2c; color:#fff; font-size:16px; font-weight:600; border:none; cursor:pointer; }
   .rollbtn:active { transform:scale(0.98); }
-  .result { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.05); min-height:100px; display:flex; flex-direction:column; justify-content:center; gap:6px; }
-  .result .line { font-size:15px; }
-  .result .pos { font-size:22px; font-weight:700; }
-  .result .genre { font-size:14px; color:#777; }
-  .empty { color:#aaa; font-size:13px; }
-  .del { font-size:11px; opacity:0.5; margin-left:4px; }
-  .histbtn { text-align:center; font-size:12px; color:#999; margin-top:14px; text-decoration:underline; cursor:pointer; }
+  .result { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.05); min-height:80px; display:flex; flex-direction:column; justify-content:center; margin-top:10px; }
+  .result .main { font-size:20px; font-weight:700; }
+  .empty { color:#bbb; font-size:13px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>✍️ 소재 뽑기</h1>
-  <div class="sub">버튼 하나로 장르 · 공/수 조합을 랜덤으로 뽑아보세요</div>
+  <h1>✍️ Plot</h1>
 
-  <button class="rollbtn" onclick="roll()">🎲 랜덤 뽑기</button>
-
-  <div class="result" id="result">
-    <div class="empty">버튼을 눌러 조합을 뽑아보세요</div>
+  <div class="card">
+    <h2>장르</h2>
+    <button class="rollbtn" onclick="rollGenre()">🎲 장르 뽑기</button>
+    <div class="result" id="genreResult"><div class="empty">눌러서 뽑기</div></div>
   </div>
-  <div class="histbtn" id="histBtn" onclick="toggleHist()" style="display:none;">지난 기록 보기</div>
-  <div id="histList" style="display:none; margin-top:10px;"></div>
+
+  <div class="card">
+    <h2>공수</h2>
+    <button class="rollbtn" onclick="rollPos()">🎲 공수 뽑기</button>
+    <div class="result" id="posResult"><div class="empty">눌러서 뽑기</div></div>
+  </div>
+
+  <div class="card">
+    <h2>판타지</h2>
+    <button class="rollbtn" onclick="rollFantasy()">🎲 판타지 뽑기</button>
+    <div class="result" id="fantasyResult"><div class="empty">눌러서 뽑기</div></div>
+  </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script>
+const genres = ["로맨스","현대물","오피스물","학원물","무협","회귀물","빙의물","환생물","오메가버스","군대물","아이돌물","재벌물","스포츠물","의학물","범죄물","느와르","추리물","호러","좀비물","포스트아포칼립스","초능력물","히어로물","SF","우주물","타임루프","계약연애","정략결혼","가족물","육아물","브로맨스","일상물","힐링물","복수극","스릴러","밀실물","재난물","전쟁물","스팀펑크","아카데미물","연예계물"];
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAlzJYXJlD8vr9LyO02QH39H5yV3wosXvI",
-  authDomain: "news-1b158.firebaseapp.com",
-  projectId: "news-1b158",
-  storageBucket: "news-1b158.firebasestorage.app",
-  messagingSenderId: "382834473349",
-  appId: "1:382834473349:web:39990d2794cd6ab173ecec"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const histCol = collection(db, "fanficPicker_history");
+const pos = ["대기업 후계자","중소기업 사장","회사원","신입사원","팀장","대학 교수","대학원생","의사","변호사","검사","형사","경찰","기자","배우","무명 배우","아이돌","아이돌 연습생","연예기획사 대표","매니저","작가","편집자","화가","사진작가","셰프","바텐더","카페 사장","카페 직원","건물주","재벌가 자제","재벌가 막내","재벌가의 사생아","정치인 집안 출신","군인","전직 군인","프로 운동선수","운동선수","트레이너","체육관 관장","사채업자","사업가","조직의 간부","조직의 후계자","해결사","탐정","사기꾼","도박사","카지노 운영자","계약직","대학생","휴학생","취업준비생","가난한 집안 출신","수의사","간호사","교사","빵집 직원","골동품점 주인","서점 직원","고서 수집가","음악가","길거리 공연자","프리랜서","백수","여행자","가출한 사람","신분을 숨기고 사는 사람","몰락한 집안의 후계자"];
 
-let data = {
-genres:["로맨스","현대물","판타지","학원물","무협","회귀물","빙의물","환생물","오메가버스","직장물","군대물","아이돌물","재벌물","스포츠물","의학물","범죄물","느와르","추리물","호러","좀비물","포스트아포칼립스","이세계","섭정물","궁중물(사극)","서양풍 판타지","마법사물","뱀파이어물","늑대인간물","초능력물","히어로물","SF","우주물","타임루프","계약연애","정략결혼","가족물","육아물","브로맨스","일상물","힐링물","다크판타지","느낀대로물(먼치킨)","복수극","스릴러","밀실물","재난물","전쟁물","스팀펑크","아카데미물","게임판타지","연예계물"],
-pos:["대기업 후계자","중소기업 사장","회사원","신입사원","팀장","대학 교수","대학원생","의사","변호사","검사","형사","경찰","기자","배우","무명 배우","아이돌","아이돌 연습생","연예기획사 대표","매니저","작가","편집자","화가","사진작가","셰프","바텐더","카페 사장","카페 직원","건물주","재벌가 자제","재벌가 막내","재벌가의 사생아","정치인 집안 출신","군인","전직 군인","프로 운동선수","운동선수","트레이너","체육관 관장","사채업자","사업가","조직의 간부","조직의 후계자","해결사","탐정","사기꾼","도박사","카지노 운영자","계약직","대학생","휴학생","취업준비생","가난한 집안 출신","수의사","간호사","교사","빵집 직원","골동품점 주인","서점 직원","고서 수집가","음악가","길거리 공연자","프리랜서","백수","여행자","가출한 사람","신분을 숨기고 사는 사람","몰락한 집안의 후계자"],
-fantasyPos:["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","왕궁 시종","기사단장","기사","마법사","대마법사","견습 마법사","성직자","사제","신관","예언자","용병","암살자","도적","상인","약초꾼","평민","마왕","마족","용","뱀파이어","늑대인간","신","신의 사도","저주받은 인간"]
-};
-const fantasyGenres = new Set(["판타지","서양풍 판타지","다크판타지","이세계","마법사물","뱀파이어물","늑대인간물","게임판타지","궁중물(사극)"]);
+const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","왕궁 시종","기사단장","기사","마법사","대마법사","견습 마법사","성직자","사제","신관","예언자","용병","암살자","도적","상인","약초꾼","평민","마왕","마족","용","뱀파이어","늑대인간","신","신의 사도","저주받은 인간"];
 
-window.roll = async () => {
-  const g = data.genres[Math.floor(Math.random()*data.genres.length)];
-  const pool = fantasyGenres.has(g) ? data.fantasyPos : data.pos;
-  let i = Math.floor(Math.random()*pool.length);
-  let j = Math.floor(Math.random()*(pool.length-1));
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pickTwo(arr){
+  const i = Math.floor(Math.random()*arr.length);
+  let j = Math.floor(Math.random()*(arr.length-1));
   if(j>=i) j++;
-  const go = pool[i], su = pool[j];
-  document.getElementById('result').innerHTML = `
-    <div class="genre">${g}</div>
-    <div class="pos">${go} × ${su}</div>
-  `;
-  const h = JSON.parse(localStorage.getItem('plotHist')||'[]');
-  h.unshift({genre:g,gong:go,su:su});
-  localStorage.setItem('plotHist', JSON.stringify(h.slice(0,15)));
-  document.getElementById('histBtn').style.display='block';
-};
+  return [arr[i], arr[j]];
+}
 
-window.toggleHist = () => {
-  const listEl = document.getElementById('histList');
-  if(listEl.style.display==='block'){ listEl.style.display='none'; return; }
-  const h = JSON.parse(localStorage.getItem('plotHist')||'[]');
-  listEl.innerHTML = h.map(v=>`<div style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:6px;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">${v.genre} · ${v.gong} × ${v.su}</div>`).join('');
-  listEl.style.display='block';
-};
-
+function rollGenre(){
+  document.getElementById('genreResult').innerHTML = `<div class="main">${pick(genres)}</div>`;
+}
+function rollPos(){
+  const [a,b] = pickTwo(pos);
+  document.getElementById('posResult').innerHTML = `<div class="main">${a} × ${b}</div>`;
+}
+function rollFantasy(){
+  const [a,b] = pickTwo(fantasy);
+  document.getElementById('fantasyResult').innerHTML = `<div class="main">${a} × ${b}</div>`;
+}
 </script>
 </body>
 </html>
