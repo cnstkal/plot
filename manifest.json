@@ -1,0 +1,11 @@
+{
+  "name": "Plot",
+  "short_name": "Plot",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f6f4",
+  "theme_color": "#f7f6f4",
+  "icons": [
+    { "src": "icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
