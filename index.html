@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소재 뽑기</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family: 'Pretendard', sans-serif; background:#f7f6f4; color:#2c2c2c; min-height:100vh; padding:24px 16px; }
+  .wrap { max-width:520px; margin:0 auto; }
+  h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
+  .sub { font-size:13px; color:#888; margin-bottom:24px; }
+  .card { background:#fff; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+  .card h2 { font-size:14px; font-weight:600; margin-bottom:12px; color:#555; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .tag { padding:7px 12px; border-radius:20px; background:#f0efec; font-size:13px; cursor:pointer; user-select:none; border:1px solid transparent; }
+  .tag.active { background:#2c2c2c; color:#fff; }
+  .addrow { display:flex; gap:6px; }
+  input[type=text] { flex:1; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-family:inherit; font-size:13px; }
+  button { font-family:inherit; cursor:pointer; border:none; }
+  .addbtn { padding:8px 12px; border-radius:8px; background:#eee; font-size:13px; }
+  .rollbtn { width:100%; padding:16px; border-radius:14px; background:#2c2c2c; color:#fff; font-size:16px; font-weight:600; margin:8px 0 20px; }
+  .rollbtn:active { transform:scale(0.98); }
+  .result { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.05); min-height:100px; display:flex; flex-direction:column; justify-content:center; gap:6px; }
+  .result .line { font-size:15px; }
+  .result .pos { font-size:22px; font-weight:700; }
+  .result .genre { font-size:14px; color:#777; }
+  .empty { color:#aaa; font-size:13px; }
+  .del { font-size:11px; opacity:0.5; margin-left:4px; }
+  .histbtn { text-align:center; font-size:12px; color:#999; margin-top:14px; text-decoration:underline; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✍️ 소재 뽑기</h1>
+  <div class="sub">버튼 하나로 장르 · 공/수 조합을 랜덤으로 뽑아보세요</div>
+
+  <button class="rollbtn" onclick="roll()">🎲 랜덤 뽑기</button>
+
+  <div class="result" id="result">
+    <div class="empty">버튼을 눌러 조합을 뽑아보세요</div>
+  </div>
+  <div class="histbtn" id="histBtn" onclick="toggleHist()" style="display:none;">지난 기록 보기</div>
+  <div id="histList" style="display:none; margin-top:10px;"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAlzJYXJlD8vr9LyO02QH39H5yV3wosXvI",
+  authDomain: "news-1b158.firebaseapp.com",
+  projectId: "news-1b158",
+  storageBucket: "news-1b158.firebasestorage.app",
+  messagingSenderId: "382834473349",
+  appId: "1:382834473349:web:39990d2794cd6ab173ecec"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const histCol = collection(db, "fanficPicker_history");
+
+let data = {
+genres:["로맨스","현대물","판타지","학원물","무협","회귀물","빙의물","환생물","오메가버스","직장물","군대물","아이돌물","재벌물","스포츠물","의학물","범죄물","느와르","추리물","호러","좀비물","포스트아포칼립스","이세계","섭정물","궁중물(사극)","서양풍 판타지","마법사물","뱀파이어물","늑대인간물","초능력물","히어로물","SF","우주물","타임루프","계약연애","정략결혼","가족물","육아물","브로맨스","일상물","힐링물","다크판타지","느낀대로물(먼치킨)","복수극","스릴러","밀실물","재난물","전쟁물","스팀펑크","아카데미물","게임판타지","연예계물"],
+gong:["재벌 후계자","경호원","대학교수","형사","외과의사","셰프","군인(장교)","변호사","조폭 두목","킬러","아이돌 센터","프로게이머","건축가","파일럿","소방관","해적선장","황제","공작","기사단장","마법사","드래곤(수인)","늑대수인 알파","뱀파이어 귀족","형사반장","특수요원(스파이)","야구선수","격투기 선수","작곡가","사진작가","바텐더","호텔 총지배인","비밀 조직 보스","해군 함장","우주선 선장","연쇄살인마(다크)","전직 암살자","재활병원 의사","고고학자","펜싱 선수","도서관 사서(반전매력)","스턴트맨","수의사","조종사 겸 정비사","전설의 검사","왕실 근위대장","프로듀서","클럽 오너","서바이벌 생존왕","은둔 재벌 2세","냉동인간(과거인)","AI 로봇"],
+su:["무명 작가","비서","아이돌 막내","인턴 의사","신입 형사","가난한 대학생","프리랜서 일러스트레이터","고아원 출신 교사","시골 출신 순진남","전직 발레리노","연구원(과학자)","웹소설 작가","조수(어시스턴트)","길거리 뮤지션","반려동물 훈련사","서점 주인","제빵사","플로리스트","보디가드 대상자(피보호자)","입양된 왕족","기억상실증 환자","시한부 환자","평범한 회사원","프리랜서 번역가","동물원 사육사","극단 배우","마을 이장의 아들/딸","용병","도망자","저주받은 마법사","은둔형 외톨이(히키코모리)","전직 아이돌","떠돌이 여행자","시골 의사","해적선 포로","고양이 카페 사장","무명 셰프","패션 디자이너 지망생","가문의 숨겨진 자식","고서적 감정사","신문기자","드라마 조연출","수족관 조련사","보육원 교사","마을 무당(영매)","전직 특수부대원(현재 은퇴)","게임 개발자","심리상담사","고전음악 지휘자","우주정거장 연구원","시간여행자"]
+};
+
+window.roll = async () => {
+  if(data.genres.length===0 || data.gong.length===0 || data.su.length===0){
+    document.getElementById('result').innerHTML = '<div class="empty">장르, 공, 수를 각각 하나 이상 등록해주세요</div>';
+    return;
+  }
+  const g = data.genres[Math.floor(Math.random()*data.genres.length)];
+  const go = data.gong[Math.floor(Math.random()*data.gong.length)];
+  const su = data.su[Math.floor(Math.random()*data.su.length)];
+  document.getElementById('result').innerHTML = `
+    <div class="genre">${g}</div>
+    <div class="pos">${go} × ${su}</div>
+    <div class="line">공: ${go} / 수: ${su}</div>
+  `;
+  try{ await addDoc(histCol, { genre:g, gong:go, su:su, at: Date.now() }); }catch(e){console.log(e);}
+  document.getElementById('histBtn').style.display='block';
+};
+
+window.toggleHist = async () => {
+  const listEl = document.getElementById('histList');
+  if(listEl.style.display==='block'){ listEl.style.display='none'; return; }
+  try{
+    const q = query(histCol, orderBy('at','desc'), limit(15));
+    const snap = await getDocs(q);
+    listEl.innerHTML = '';
+    snap.forEach(d=>{
+      const v = d.data();
+      const row = document.createElement('div');
+      row.style.cssText='background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:6px;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,0.04);';
+      row.textContent = `${v.genre} · ${v.gong} × ${v.su}`;
+      listEl.appendChild(row);
+    });
+    listEl.style.display='block';
+  }catch(e){console.log(e);}
+};
+
+</script>
+</body>
+</html>
