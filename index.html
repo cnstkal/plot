@@ -73,6 +73,8 @@
   .genre .dot { background:#ff9d7a; }
   .character .dot { background:#7aa8ff; }
   .setting .dot { background:#6bc7a8; }
+  .gongsu .dot { background:#e0a458; }
+  .relationship .dot { background:#e07a9e; }
   .fantasy .dot { background:#b98aff; }
   .nsfw .dot { background:#ff6f91; }
 
@@ -172,7 +174,7 @@
     </div>
   </div>
 
-  <button class="oneclick" onclick="rollGenre();rollCharacterA();rollCharacterB();rollSetting();">🎲 원클릭 뽑기</button>
+  <button class="oneclick" onclick="rollGenre();rollRelationship();rollCharacterA();rollCharacterB();rollGong();rollSu();rollSetting();">🎲 원클릭 뽑기</button>
 
   <div class="section-label">기본 요소</div>
 
@@ -186,6 +188,18 @@
     </div>
     <div class="result" id="genreResult"><div class="empty">눌러서 뽑기</div></div>
     <div class="chiplist" id="genreList"></div>
+  </div>
+
+  <div class="card relationship">
+    <div class="card-head">
+      <h2><span class="dot"></span>관계</h2>
+      <div class="btns">
+        <button class="listbtn" id="relationshipListBtn" onclick="toggleList('relationship')">목록</button>
+        <button class="rollbtn" onclick="rollRelationship()">뽑기</button>
+      </div>
+    </div>
+    <div class="result" id="relationshipResult"><div class="empty">눌러서 뽑기</div></div>
+    <div class="chiplist" id="relationshipList"></div>
   </div>
 
   <div class="card character">
@@ -208,9 +222,29 @@
     <div class="chiplist" id="characterList"></div>
   </div>
 
+  <div class="card gongsu">
+    <div class="card-head">
+      <h2><span class="dot"></span>공수</h2>
+      <button class="listbtn" id="gongsuListBtn" onclick="toggleList('gongsu')">목록</button>
+    </div>
+    <div class="character-pair">
+      <div class="character-half">
+        <div class="character-label">공</div>
+        <div class="result" id="gongResult"><div class="empty">눌러서 뽑기</div></div>
+        <button class="rollbtn character-roll" onclick="rollGong()">뽑기</button>
+      </div>
+      <div class="character-half">
+        <div class="character-label">수</div>
+        <div class="result" id="suResult"><div class="empty">눌러서 뽑기</div></div>
+        <button class="rollbtn character-roll" onclick="rollSu()">뽑기</button>
+      </div>
+    </div>
+    <div class="chiplist" id="gongsuList"></div>
+  </div>
+
   <div class="card setting">
     <div class="card-head">
-      <h2><span class="dot"></span>배경</h2>
+      <h2><span class="dot"></span>소재</h2>
       <div class="btns">
         <button class="listbtn" id="settingListBtn" onclick="toggleList('setting')">목록</button>
         <button class="rollbtn" onclick="rollSetting()">뽑기</button>
@@ -250,13 +284,14 @@
 
 <script>
 // 장르 - 작품 전체를 아우르는 분위기/톤
-const genres = ["로맨스","현대","무협","회귀","빙의","환생","오메가버스","스포츠","의학","범죄","느와르","좀비아포칼립스","포스트아포칼립스","초능력","히어로","SF","타임루프","계약연애","정략결혼","가족","육아","일상","힐링","스릴러","재난","전쟁","스팀펑크","사이버펑크","이혼","재혼","네임버스","AI","키잡/역키잡","게임","센티넬버스","마법소녀","섹피","신화","해외","어플만남","근친","오피스","학원","연예계","재벌","밀실","사이비","노란장판"];
+const genres = ["로맨스","현대","무협","오메가버스","스포츠","의학","범죄","느와르","좀비아포칼립스","포스트아포칼립스","초능력","히어로","SF","가족","육아","일상","힐링","스릴러","재난","전쟁","스팀펑크","사이버펑크","네임버스","AI","게임","센티넬버스","마법소녀","섹피","신화","해외","오피스","학원","연예계","재벌","서바이벌","헌터","시대","동양풍","서양풍"];
 
 // 배경 - 이야기의 중심지가 되는 물리적/제도적 공간
-const settings = ["캠퍼스","군대","구룡성채","정신병원","교도소","연구소","보육원","셰어하우스","방송국","사창가","섬","난민촌","격리구역","크루즈선"];
+const settings = ["캠퍼스","군대","구룡성채","정신병원","교도소","연구소","보육원","셰어하우스","방송국","사창가","섬","난민촌","격리구역","크루즈선","회귀","빙의","환생","타임루프","계약연애","정략결혼","이혼","재혼","키잡/역키잡","근친","어플만남","밀실","사이비","노란장판"];
+const relationship = ["소꿉친구","친구>연인","동거/배우자","첫사랑","재회물","라이벌","배틀연애","애증","하극상","계약","원나잇","스폰서","금단의관계","사제관계","신분차이","나이차이","다공일수","서브공있음","서브수있음"];
 
 // 캐릭터 (기존 공수)
-const character = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","난민","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델"];
+const character = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","난민","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델","사이코/소시오","양아치"];
 
 // 판타지 - 플러스 요소
 const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","신하","기사단장","기사","마법사","대마법사","성직자","사제","신관","예언자","용병","도적","상인","약초꾼","평민","마왕","마족","드래곤","뱀파이어","늑대인간","신","신의 사도","몰락한 왕족","악마","천사","반신","용사","성녀","불멸자","이세계인","다른 종족의 왕","신의 대리인","왕의 최측근","해적"];
@@ -264,7 +299,10 @@ const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족"
 // 수위 키워드 - 플러스 요소
 const nsfwKeywords = ["콘돔","순애","수면간","자위","임신","방치","관음","롤플레이","딥쓰롯","야외","근친","촉수","정신 개조","육변기","세뇌","가정폭력","딜도","펠라","난교","윤간","시오후키","감금","3P","NTR","납치","산란","주종관계","촬영","착유","스마타","파이즈리","문신","원홀투스틱","벽고","오나홀","코스튬","매춘","구속","하렘","결혼","스토킹","처녀상실","유부","후타나리","치한"];
 
-const data = { genre: genres, character: character, setting: settings, fantasy: fantasy, nsfw: nsfwKeywords };
+const gong = ["재벌공","집착공","계략공","강공","능글공","다정공","무심공","냉혈공","후회공","광공","개아가공","연하공","연상공","동갑공","미인공","순정공","짝사랑공","헌신공","능력공","복흑공","직진공","까칠공","츤데레공","상처공","절륜공","문란공","초딩공","대형견공","여우공","늑대공","알파공","귀염공","호구공","베타공","헤테로공"];
+const su = ["연상수","연하수","다정수","무심수","까칠수","순진수","청순수","적극수","소심수","짝사랑수","헌신수","상처수","굴림수","도망수","임신수","능력수","계략수","복흑수","강수","문란수","대형견수","여우수","울보수","집착수","알파수","오메가수","베타수","얼빠수","외유내강수","군림수","공이었수","명랑수","햇살수","허당수","츤데레수","호구수"];
+
+const data = { genre: genres, character: character, setting: settings, relationship: relationship, gong: gong, su: su, gongsu: gong.concat(su), fantasy: fantasy, nsfw: nsfwKeywords };
 
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function pickTwo(arr){
@@ -288,8 +326,17 @@ function rollCharacterA(){
 function rollCharacterB(){
   document.getElementById('characterBResult').innerHTML = `<div class="main">${pick(character)}</div>`;
 }
+function rollRelationship(){
+  document.getElementById('relationshipResult').innerHTML = `<div class="main">${pick(relationship)}</div>`;
+}
 function rollSetting(){
   document.getElementById('settingResult').innerHTML = `<div class="main">${pick(settings)}</div>`;
+}
+function rollGong(){
+  document.getElementById('gongResult').innerHTML = `<div class="main">${pick(gong)}</div>`;
+}
+function rollSu(){
+  document.getElementById('suResult').innerHTML = `<div class="main">${pick(su)}</div>`;
 }
 function rollFantasy(){
   const [a,b] = pickTwo(fantasy);
