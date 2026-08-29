@@ -111,6 +111,15 @@
   }
   .listbtn:active { background:#f3f0eb; }
   .listbtn.active { background:#f3f0eb; color:#4a433c; }
+  .lockbtn {
+    width:34px; height:34px; border:none; border-radius:50%;
+    background:#f3f0eb; color:#b0a898; cursor:pointer;
+    font-size:13px; display:flex; align-items:center; justify-content:center;
+    transition:background .12s ease, color .12s ease, transform .12s ease;
+  }
+  .lockbtn:active { transform:scale(.92); }
+  .lockbtn.active { background:#2a2622; color:#fff; }
+
 
   .result {
     min-height:56px;
@@ -238,9 +247,11 @@
   .save-memo {
     width:100%; border:none; background:#faf8f5; border-radius:10px;
     padding:10px 12px; font-size:13px; font-family:inherit; color:#4a433c;
-    resize:none; min-height:40px;
+    resize:none; min-height:72px; line-height:1.55; overflow:hidden; box-sizing:border-box;
   }
   .save-memo::placeholder { color:#c2b9ac; }
+  .save-memo:focus { outline:2px solid #e8e2d8; background:#fff; }
+
   .save-item-foot { display:flex; justify-content:flex-end; margin-top:8px; }
   .save-del {
     border:none; background:transparent; cursor:pointer;
@@ -316,6 +327,7 @@
       <h2><span class="dot"></span>장르</h2>
       <div class="btns">
         <button class="listbtn" id="genreListBtn" onclick="toggleList('genre')">목록</button>
+        <button class="lockbtn" id="genreLockBtn" onclick="toggleLock('genre')" title="고정">🔒</button>
         <button class="rollbtn" onclick="rollGenre()">뽑기</button>
       </div>
     </div>
@@ -328,6 +340,7 @@
       <h2><span class="dot"></span>관계</h2>
       <div class="btns">
         <button class="listbtn" id="relationshipListBtn" onclick="toggleList('relationship')">목록</button>
+        <button class="lockbtn" id="relationshipLockBtn" onclick="toggleLock('relationship')" title="고정">🔒</button>
         <button class="rollbtn" onclick="rollRelationship()">뽑기</button>
       </div>
     </div>
@@ -339,7 +352,8 @@
     <div class="card-head">
       <h2><span class="dot"></span>캐릭터</h2>
       <div class="btns">
-        <button class="listbtn" id="characterListBtn" onclick="toggleList('character')">목록</button>
+        <button class="lockbtn" id="characterLockBtn" onclick="toggleLock('character')" title="고정">🔒</button>
+      <button class="listbtn" id="characterListBtn" onclick="toggleList('character')">목록</button>
         <button class="rollbtn" onclick="rollCharacterPair()">같이 뽑기</button>
       </div>
     </div>
@@ -361,6 +375,7 @@
   <div class="card gongsu">
     <div class="card-head">
       <h2><span class="dot"></span>공수</h2>
+      <button class="lockbtn" id="gongsuLockBtn" onclick="toggleLock('gongsu')" title="고정">🔒</button>
       <button class="listbtn" id="gongsuListBtn" onclick="toggleList('gongsu')">목록</button>
     </div>
     <div class="character-pair">
@@ -383,6 +398,7 @@
       <h2><span class="dot"></span>소재</h2>
       <div class="btns">
         <button class="listbtn" id="settingListBtn" onclick="toggleList('setting')">목록</button>
+        <button class="lockbtn" id="settingLockBtn" onclick="toggleLock('setting')" title="고정">🔒</button>
         <button class="rollbtn" onclick="rollSetting()">뽑기</button>
       </div>
     </div>
@@ -397,6 +413,7 @@
       <h2><span class="dot"></span>판타지</h2>
       <div class="btns">
         <button class="listbtn" id="fantasyListBtn" onclick="toggleList('fantasy')">목록</button>
+        <button class="lockbtn" id="fantasyLockBtn" onclick="toggleLock('fantasy')" title="고정">🔒</button>
         <button class="rollbtn" onclick="rollFantasy()">뽑기</button>
       </div>
     </div>
@@ -409,6 +426,7 @@
       <h2><span class="dot"></span>수위 키워드</h2>
       <div class="btns">
         <button class="listbtn" id="nsfwListBtn" onclick="toggleList('nsfw')">목록</button>
+        <button class="lockbtn" id="nsfwLockBtn" onclick="toggleLock('nsfw')" title="고정">🔒</button>
         <button class="rollbtn" onclick="rollNsfw()">뽑기</button>
       </div>
     </div>
@@ -448,7 +466,7 @@ const settings = ["캠퍼스","군대","구룡성채","정신병원","교도소"
 const relationship = ["소꿉친구","친구>연인","동거/배우자","첫사랑","재회물","라이벌","배틀연애","애증","하극상","계약","원나잇","스폰서","금단의관계","사제관계","신분차이","나이차이","다공일수","서브공있음","서브수있음"];
 
 // 캐릭터 (기존 공수)
-const character = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델","사이코/소시오","양아치"];
+const character = ["대기업 후계자","대표","회사원","대학 교수","의사","변호사","검사","형사","경찰","기자","배우","아이돌","아이돌 연습생","매니저","작가","사진작가","셰프","바텐더","카페 사장","재벌","사생아","군인","전직 군인","운동선수","사채업자","사업가","조직 간부","사기꾼","도박사","대학생","가난한 집안","교사","길거리 공연자","프리랜서","백수","정치인","조직원","경호원","장의사","마피아","조폭","죄수","교도관","숨겨진 후계자","입양아","인외","초능력자","실험체","복제인간","안드로이드","우주비행사","외계인","전쟁 영웅","반란군","스파이","환생자","흑막","유부남","싱글대디","보디가드","츤데레","여장남자","시한부","킬러","수인","인어","스트리머","해커","사신","가정부","임산부","늑대인간","뱀파이어","교주","래퍼","멘헤라","벤츠남","똥차 컬렉터","마약중독자","아저씨","고등학생","이혼남","투견","GV배우","양아치","너드","인플루언서","스토커","영화감독","불멸자","싸이코패스","살인마","모델","사이코/소시오"];
 
 // 판타지 - 플러스 요소
 const fantasy = ["왕자","황태자","황제","공작","귀족","몰락 귀족","왕족","신하","기사단장","기사","마법사","대마법사","성직자","사제","신관","예언자","용병","도적","상인","약초꾼","평민","마왕","마족","드래곤","뱀파이어","늑대인간","신","신의 사도","몰락한 왕족","악마","천사","반신","용사","성녀","불멸자","이세계인","다른 종족의 왕","신의 대리인","왕의 최측근","해적"];
@@ -484,6 +502,30 @@ function showResult(id,v){
   document.getElementById(id).innerHTML=v
     ? `<div class="main">${v}</div>` : `<div class="empty">사용 가능한 키워드가 없어요</div>`;
 }
+
+function toggleLock(key){
+  locked[key] = !locked[key];
+  const btn = document.getElementById(key + 'LockBtn');
+  if(btn) btn.classList.toggle('active', locked[key]);
+  showToast(locked[key] ? '이 키워드를 고정했어요 🔒' : '고정을 해제했어요');
+}
+
+
+function rollAll(){
+  if(!locked.genre) rollGenre();
+  if(!locked.relationship) rollRelationship();
+  if(!locked.character){
+    rollCharacterPair();
+  }
+  if(!locked.gongsu){
+    rollGong();
+    rollSu();
+  }
+  if(!locked.setting) rollSetting();
+  if(!locked.fantasy) rollFantasy();
+  if(!locked.nsfw) rollNsfw();
+}
+
 function rollGenre(){ const v=pick(activeArr('genre')); if(v){current['장르']=v;showResult('genreResult',v);} }
 function rollCharacterA(){ window.characterTarget='A'; const v=pick(activeArr('character')); if(v){current['캐릭터A']=v;showResult('characterAResult',v);} }
 function rollCharacterB(){ window.characterTarget='B'; const v=pick(activeArr('character')); if(v){current['캐릭터B']=v;showResult('characterBResult',v);} }
@@ -619,14 +661,32 @@ function saveCurrent(){
     showToast('먼저 키워드를 뽑아주세요');
     return;
   }
-  const entry = { id: 'local_'+Date.now(), keywords, memo:'', createdAt: Date.now() };
+
+  // 로컬 저장을 먼저 완료해서 Firebase 설정/네트워크 문제와 관계없이 저장되게 함
+  const entry = {
+    id: 'local_' + Date.now(),
+    keywords,
+    memo: '',
+    createdAt: Date.now()
+  };
   saves.unshift(entry);
   persistLocal();
+  renderSheet();
+
+  // Firebase는 백그라운드에서 동기화만 시도
   if(db){
-    db.collection('plot_saves').add({ keywords, memo:'', createdAt: Date.now() })
-      .then(ref => { entry.id = ref.id; persistLocal(); })
-      .catch(e => console.warn('firestore 저장 실패', e));
+    db.collection('plot_saves').add({
+      keywords,
+      memo: '',
+      createdAt: entry.createdAt
+    }).then(ref => {
+      entry.id = ref.id;
+      persistLocal();
+    }).catch(e => {
+      console.warn('firestore 저장 실패 — 로컬 저장은 완료됨', e);
+    });
   }
+
   showToast('저장했어요 💾');
 }
 
@@ -651,6 +711,12 @@ function removeKeyword(id, label){
   renderSheet();
 }
 
+
+function autoResizeMemo(el){
+  el.style.height = 'auto';
+  el.style.height = Math.max(72, el.scrollHeight) + 'px';
+}
+
 function renderSheet(){
   const body = document.getElementById('sheetBody');
   if(saves.length === 0){
@@ -666,10 +732,13 @@ function renderSheet(){
     <div class="save-item">
       <div class="date">${date}</div>
       <div class="save-chips">${chips || '<span style=\"color:#c2b9ac;font-size:12px\">키워드 없음</span>'}</div>
-      <textarea class="save-memo" placeholder="메모 남기기…" onblur="updateSave('${s.id}',{memo:this.value})">${s.memo||''}</textarea>
+      <textarea class="save-memo" placeholder="메모 남기기…"
+        oninput="autoResizeMemo(this)"
+        onblur="updateSave('${s.id}',{memo:this.value})">${s.memo||''}</textarea>
       <div class="save-item-foot"><button class="save-del" onclick="deleteSave('${s.id}')">삭제</button></div>
     </div>`;
   }).join('');
+  document.querySelectorAll('.save-memo').forEach(autoResizeMemo);
 }
 
 function openSheet(){
