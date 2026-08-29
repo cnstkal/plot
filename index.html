@@ -219,6 +219,12 @@
     border-bottom:1px solid #ece7de;
   }
   .sheet-head h3 { font-size:17px; font-weight:800; }
+  .sheet-head-actions { display:flex; align-items:center; gap:6px; }
+  .sheet-io-btn {
+    display:flex; align-items:center; justify-content:center;
+    height:30px; padding:0 10px; border-radius:100px; border:none; cursor:pointer;
+    background:#efece5; color:#5e574d; font-size:12px; font-weight:700; white-space:nowrap;
+  }
   .sheet-close {
     width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
     background:#efece5; color:#9a9184; font-size:15px; font-weight:700;
@@ -246,8 +252,8 @@
   }
   .save-memo {
     width:100%; border:none; background:#faf8f5; border-radius:10px;
-    padding:10px 12px; font-size:13px; font-family:inherit; color:#4a433c;
-    resize:none; min-height:72px; line-height:1.55; overflow:hidden; box-sizing:border-box;
+    padding:14px 14px; font-size:13px; font-family:inherit; color:#4a433c;
+    resize:none; min-height:80px; line-height:1.65; overflow:hidden; box-sizing:border-box;
   }
   .save-memo::placeholder { color:#c2b9ac; }
   .save-memo:focus { outline:2px solid #e8e2d8; background:#fff; }
@@ -449,7 +455,11 @@
   <div class="sheet-handle"></div>
   <div class="sheet-head">
     <h3>📌 보관함</h3>
-    <button class="sheet-close" onclick="closeSheet()">✕</button>
+    <div class="sheet-head-actions">
+      <button class="sheet-io-btn" onclick="exportSaves()" title="백업 파일로 내보내기">⬇️ 백업</button>
+      <label class="sheet-io-btn" title="백업 파일 불러오기">⬆️ 복원<input type="file" accept="application/json" onchange="importSaves(this.files[0])" style="display:none"></label>
+      <button class="sheet-close" onclick="closeSheet()">✕</button>
+    </div>
   </div>
   <div class="sheet-body" id="sheetBody"></div>
 </div>
@@ -480,8 +490,40 @@ const su = ["연상수","연하수","다정수","무심수","까칠수","순진�
 const data = { genre: genres, character: character, setting: settings, relationship: relationship, gong: gong, su: su, gongsu: gong.concat(su), fantasy: fantasy, nsfw: nsfwKeywords };
 const current = {};
 const disabled = JSON.parse(localStorage.getItem('plot_disabled') || '{}');
+const locked = {};
 
 function saveDisabled(){ localStorage.setItem('plot_disabled', JSON.stringify(disabled)); }
+
+const configLabels = { genre:'장르', character:'캐릭터', setting:'배경', relationship:'관계', gong:'공', su:'수', fantasy:'판타지', nsfw:'수위' };
+
+function renderConfig(){
+  const body = document.getElementById('configBody');
+  body.innerHTML = Object.keys(configLabels).map(key => {
+    const items = data[key] || [];
+    const offList = disabled[key] || [];
+    const chips = items.map(item => {
+      const off = offList.includes(item);
+      return `<span class="config-chip${off ? ' off' : ''}" onclick="toggleDisabled('${key}','${item.replace(/'/g,"\\'")}')">${item}</span>`;
+    }).join('');
+    return `<div class="config-group"><div class="config-group-title">${configLabels[key]}<span class="config-count">${items.length - offList.length}/${items.length}</span></div><div class="config-chips">${chips}</div></div>`;
+  }).join('');
+}
+function toggleDisabled(key,item){
+  disabled[key] = disabled[key] || [];
+  const idx = disabled[key].indexOf(item);
+  if(idx === -1) disabled[key].push(item); else disabled[key].splice(idx,1);
+  saveDisabled();
+  renderConfig();
+}
+function openConfig(){
+  renderConfig();
+  document.getElementById('configBackdrop').classList.add('open');
+  document.getElementById('configModal').classList.add('open');
+}
+function closeConfig(){
+  document.getElementById('configBackdrop').classList.remove('open');
+  document.getElementById('configModal').classList.remove('open');
+}
 function activeArr(key){
   return (data[key] || []).filter(v => !(disabled[key] || []).includes(v));
 }
@@ -750,6 +792,53 @@ function closeSheet(){
   document.getElementById('sheetBackdrop').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
 }
+
+function exportSaves(){
+  const payload = { saves, disabled, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `plot-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('백업 파일을 저장했어요 ⬇️');
+}
+
+function importSaves(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      const incoming = Array.isArray(parsed) ? parsed : (parsed.saves || []);
+      if(!Array.isArray(incoming)) throw new Error('invalid format');
+      const existingIds = new Set(saves.map(s => s.id));
+      incoming.forEach(item => {
+        if(!existingIds.has(item.id)){ saves.push(item); existingIds.add(item.id); }
+      });
+      saves.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      persistLocal();
+      if(parsed.disabled){
+        Object.keys(parsed.disabled).forEach(key => {
+          const merged = new Set([...(disabled[key]||[]), ...parsed.disabled[key]]);
+          disabled[key] = [...merged];
+        });
+        saveDisabled();
+      }
+      renderSheet();
+      showToast('백업을 불러왔어요 ⬆️');
+    }catch(e){
+      console.error(e);
+      showToast('백업 파일을 읽지 못했어요');
+    }
+  };
+  reader.readAsText(file);
+}
+
 </script>
 </body>
 </html>
