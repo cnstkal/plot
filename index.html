@@ -480,40 +480,8 @@ const su = ["연상수","연하수","다정수","무심수","까칠수","순진�
 const data = { genre: genres, character: character, setting: settings, relationship: relationship, gong: gong, su: su, gongsu: gong.concat(su), fantasy: fantasy, nsfw: nsfwKeywords };
 const current = {};
 const disabled = JSON.parse(localStorage.getItem('plot_disabled') || '{}');
-const locked = {};
 
 function saveDisabled(){ localStorage.setItem('plot_disabled', JSON.stringify(disabled)); }
-
-const configLabels = { genre:'장르', character:'캐릭터', setting:'배경', relationship:'관계', gong:'공', su:'수', fantasy:'판타지', nsfw:'수위' };
-
-function renderConfig(){
-  const body = document.getElementById('configBody');
-  body.innerHTML = Object.keys(configLabels).map(key => {
-    const items = data[key] || [];
-    const offList = disabled[key] || [];
-    const chips = items.map(item => {
-      const off = offList.includes(item);
-      return `<span class="config-chip${off ? ' off' : ''}" onclick="toggleDisabled('${key}','${item.replace(/'/g,"\\'")}')">${item}</span>`;
-    }).join('');
-    return `<div class="config-group"><div class="config-group-title">${configLabels[key]}<span class="config-count">${items.length - offList.length}/${items.length}</span></div><div class="config-chips">${chips}</div></div>`;
-  }).join('');
-}
-function toggleDisabled(key,item){
-  disabled[key] = disabled[key] || [];
-  const idx = disabled[key].indexOf(item);
-  if(idx === -1) disabled[key].push(item); else disabled[key].splice(idx,1);
-  saveDisabled();
-  renderConfig();
-}
-function openConfig(){
-  renderConfig();
-  document.getElementById('configBackdrop').classList.add('open');
-  document.getElementById('configModal').classList.add('open');
-}
-function closeConfig(){
-  document.getElementById('configBackdrop').classList.remove('open');
-  document.getElementById('configModal').classList.remove('open');
-}
 function activeArr(key){
   return (data[key] || []).filter(v => !(disabled[key] || []).includes(v));
 }
