@@ -485,8 +485,8 @@ function showResult(id,v){
     ? `<div class="main">${v}</div>` : `<div class="empty">사용 가능한 키워드가 없어요</div>`;
 }
 function rollGenre(){ const v=pick(activeArr('genre')); if(v){current['장르']=v;showResult('genreResult',v);} }
-function rollCharacterA(){ const v=pick(activeArr('character')); if(v){current['캐릭터A']=v;showResult('characterAResult',v);} }
-function rollCharacterB(){ const v=pick(activeArr('character')); if(v){current['캐릭터B']=v;showResult('characterBResult',v);} }
+function rollCharacterA(){ window.characterTarget='A'; const v=pick(activeArr('character')); if(v){current['캐릭터A']=v;showResult('characterAResult',v);} }
+function rollCharacterB(){ window.characterTarget='B'; const v=pick(activeArr('character')); if(v){current['캐릭터B']=v;showResult('characterBResult',v);} }
 function rollCharacterPair(){
   const [a,b]=pickTwo(activeArr('character')); if(!a) return;
   current['캐릭터A']=a; current['캐릭터B']=b;
@@ -517,60 +517,58 @@ function selectKeyword(key,item){
   if(map[key]){ current[map[key][0]]=item; showResult(map[key][1],item); return; }
   if(key==='fantasy'){ current['판타지']=item; showResult('fantasyResult',item); }
 }
-function toggleList(key){
-  const el=document.getElementById(key+'List'), btn=document.getElementById(key+'ListBtn');
-  const open=el.classList.contains('open');
-  if(open){el.classList.remove('open');btn.classList.remove('active');return;}
-  renderKeywordList(key); el.classList.add('open'); btn.classList.add('active');
-}
-function renderKeywordList(key){
-  const el=document.getElementById(key+'List'), arr=data[key]||[];
-  el.innerHTML=arr.map(item=>`<button class="chip keyword-chip" onclick='selectKeyword(${JSON.stringify(key)},${JSON.stringify(item)})'>${item}</button>`).join('')+
-    `<div class="count" style="width:100%">총 ${arr.length}개 · 눌러서 선택</div>`;
+
+function selectKeyword(key, value){
+  if(key === 'character'){
+    // 캐릭터 목록에서 하나를 누르면 A/B 중 현재 선택된 대상에 적용
+    const target = window.characterTarget || 'A';
+    const resultId = target === 'B' ? 'characterBResult' : 'characterAResult';
+    const label = target === 'B' ? '캐릭터B' : '캐릭터A';
+    current[label] = value;
+    document.getElementById(resultId).innerHTML = `<div class="main">${value}</div>`;
+    window.characterTarget = target === 'B' ? 'A' : 'B';
+    return;
+  }
+
+  const map = {genre:'장르', relationship:'관계', setting:'소재', fantasy:'판타지', nsfw:'수위키워드'};
+  if(key === 'gongsu'){
+    const target = value.endsWith('공') ? '공' : '수';
+    current[target] = value;
+    document.getElementById(target === '공' ? 'gongResult' : 'suResult').innerHTML =
+      `<div class="main">${value}</div>`;
+    return;
+  }
+  if(map[key]){
+    current[map[key]] = value;
+    const el = document.getElementById(key + 'Result');
+    if(el) el.innerHTML = `<div class="main">${value}</div>`;
+  }
 }
 
-function openConfig(){
-  renderConfig();
-  document.getElementById('configBackdrop').classList.add('open');
-  document.getElementById('configModal').classList.add('open');
+
+function toggleList(key){
+  const el = document.getElementById(key+'List');
+  const btn = document.getElementById(key+'ListBtn');
+  const isOpen = el.classList.contains('open');
+  if(isOpen){
+    el.classList.remove('open');
+    btn.classList.remove('active');
+    return;
+  }
+  if(el.children.length === 0){
+    const arr = [...data[key]].sort((a,b) => a.localeCompare(b, 'ko'));
+    const prefix = key === 'character'
+      ? `<span class="chip" onclick="rollCharacterPair()">A+B 같이 뽑기</span>`
+      : '';
+    el.innerHTML = prefix + arr.map(item => {
+      const safe = String(item).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<span class="chip" onclick="selectKeyword('${key}','${safe}')">${item}</span>`;
+    }).join('') +
+      `<div class="count" style="width:100%">총 ${arr.length}개</div>`;
+  }
+  el.classList.add('open');
+  btn.classList.add('active');
 }
-function closeConfig(){
-  document.getElementById('configBackdrop').classList.remove('open');
-  document.getElementById('configModal').classList.remove('open');
-}
-function toggleDisabled(key,item){
-  disabled[key]=disabled[key]||[];
-  const i=disabled[key].indexOf(item);
-  if(i>=0) disabled[key].splice(i,1); else disabled[key].push(item);
-  saveDisabled(); renderConfig();
-}
-function addKeyword(key){
-  const input=document.getElementById('add-'+key), value=input.value.trim();
-  if(!value) return;
-  if(!data[key].includes(value)) data[key].push(value);
-  disabled[key]=(disabled[key]||[]).filter(v=>v!==value);
-  saveCustomData(); saveDisabled(); input.value=''; renderConfig();
-  const list=document.getElementById(key+'List'); if(list.classList.contains('open')) renderKeywordList(key);
-}
-function saveCustomData(){ localStorage.setItem('plot_data_custom',JSON.stringify(data)); }
-function loadCustomData(){
-  try{
-    const saved=JSON.parse(localStorage.getItem('plot_data_custom')||'null');
-    if(saved) Object.keys(data).forEach(k=>{if(Array.isArray(saved[k])) data[k]=saved[k];});
-  }catch(e){}
-}
-function renderConfig(){
-  const body=document.getElementById('configBody');
-  const groups=[['genre','장르'],['relationship','관계'],['character','캐릭터'],['setting','소재'],['gong','공'],['su','수'],['fantasy','판타지'],['nsfw','수위 키워드']];
-  body.innerHTML=`<div class="config-note">키워드를 누르면 랜덤 뽑기에서 제외하거나 다시 포함할 수 있어요.<br>입력창으로 원하는 키워드를 직접 추가할 수도 있어요.</div>`+
-  groups.map(([key,title])=>{
-    const arr=data[key]||[], off=disabled[key]||[];
-    return `<div class="config-group"><div class="config-group-title"><span>${title}</span><span class="config-count">${arr.length-off.length}/${arr.length} 사용</span></div>
-    <div class="config-chips">${arr.map(item=>`<button class="config-chip ${off.includes(item)?'off':''}" onclick='toggleDisabled(${JSON.stringify(key)},${JSON.stringify(item)})'>${item}</button>`).join('')}</div>
-    <div class="config-add"><input id="add-${key}" placeholder="${title} 키워드 추가" onkeydown="if(event.key==='Enter')addKeyword('${key}')"><button onclick="addKeyword('${key}')">추가</button></div></div>`;
-  }).join('');
-}
-loadCustomData();
 
 // ── Firebase (저장/보관함 동기화) ─────────────────
 // 아래 firebaseConfig 값을 본인 프로젝트 값으로 채워넣으세요.
